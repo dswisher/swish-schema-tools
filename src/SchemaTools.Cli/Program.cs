@@ -29,24 +29,30 @@ namespace SchemaTools.Cli
 
             services.AddLogging(l => l.AddSerilog());
 
+            // TODO - move these to an extension method inside the class lib
             services.AddTransient<ISchemaVisualizer, SchemaVisualizer>();
+            services.AddTransient<IXsdTreeBuilder, XsdTreeBuilder>();
+            services.AddTransient<ITreeDumper, TreeDumper>();
 
             // Run it!
             using (var serviceProvider = services.BuildServiceProvider())
             {
                 try
                 {
-                    var parsedArgs = Parser.Default.ParseArguments<VisualizeOptions>(args);
+                    var parsedArgs = Parser.Default.ParseArguments<GenerateOptions, VisualizeOptions>(args);
 
                     // Visualizing a schema
                     await parsedArgs.WithParsedAsync<VisualizeOptions>(options =>
                     {
                         var viz = serviceProvider.GetRequiredService<ISchemaVisualizer>();
 
-                        // TODO - add params
+                        viz.SchemaFilePath = options.SchemaFilePath;
+                        viz.DumpFilePath = options.DumpFilePath;
 
                         return viz.VisualizeAsync();
                     });
+
+                    // TODO - generation
                 }
                 catch (Exception ex)
                 {
